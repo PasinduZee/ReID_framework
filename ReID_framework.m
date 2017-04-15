@@ -14,7 +14,7 @@ dataset = 'viper';
 % dataset='prid450S';
 
 % To run our ICIP 2015 code (coined CBRA), uncomment the following line
-% ICIP(dataset);
+ ICIP(dataset);
 
 % To run our ICB code (Prototypes-based method), uncomment the following line
 %ICB(dataset);
@@ -36,9 +36,9 @@ dataset = 'viper';
 %ICPR2016(filename, dataset)
 
 %To run our ARXIV paper (Kernel Cross-View Collaborative Representation based Classification for Person Re-Identification )
-if strcmp(dataset,'viper')
-	demo_viper
-else if strcmp(dataset,'cuhk01')
-        demo_cuhk01
-	 end
-end
+%if strcmp(dataset,'viper')
+%	demo_viper
+%else if strcmp(dataset,'cuhk01')
+%        demo_cuhk01
+%	 end
+%end
