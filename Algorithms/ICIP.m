@@ -1,4 +1,4 @@
-function ICIP(dataset)
+ function ICIP(dataset)
 
     % ICIP 2015 Code
     % Loading the color names and the foreground masks
@@ -56,10 +56,9 @@ function ICIP(dataset)
     response_aggr_hist = zeros(params.nIter,N/2);
     response_final = zeros(params.nIter,N/2);
 
-  %  for iter=1:params.nIter
+    for iter=1:params.nIter
         %% Learn the metric distance (KISSME).
         % Histograms (Isolated)
-        iter=1;
         params.idxtrain = trials(iter,1:N/2);
         params.idxtest = trials(iter,N/2 + 1:N);
         notsame = randperm(N/2,N/2);
@@ -334,11 +333,7 @@ function ICIP(dataset)
 
         size_of_train_set= size(params.idxtrain)
         size_of_test_set=size(params.idxtest)
-        
-        if(iter==10)
-            break_point=size(params.idxtest)
-        end
-        
+            
         % Final Aggregation of color names, histograms and fusion
         for i=1:numel(params.idxtest)
             % Aggregation of Ranking Lists
@@ -352,45 +347,45 @@ function ICIP(dataset)
             response_final(iter,aggr_final==i) = response_final(iter, aggr_final==i) + 1; 
         end 
         
- %   end
+    end
 
     
     
     
     
      
-    % Histogram mean results.
-    answer_hist = {};legend_hist={};
-        for i=1:numel(params.hist)
-            answer_hist{end+1} = cumsum(squeeze(mean(response_hist(i,:,:))))./numel(params.idxtest);
-            legend_hist{end+1} = mHist{i}.name;
-        end
-        
-    answer_hist{end+1} = cumsum(mean(resp_type_hist))./numel(params.idxtest);
-    legend_hist{end+1} = sprintf('Hist. Type-Based');   
-
-    answer_hist{end+1} = cumsum(mean(response_aggr_hist))./numel(params.idxtest);
-    legend_hist{end+1} = 'Aggr. Hist';
-
-    % Color Names mean results.
-    answer_cn = {};legend_cn={};
-        for i=1:numel(params.cn)
-            answer_cn{end+1} = cumsum(squeeze(mean(response_scncd(i,:,:))))./numel(params.idxtest);
-            legend_cn{end+1} = mSCNCD{i}.name;
-        end
-    answer_cn{end+1} = cumsum(mean(resp_type_scncd))./numel(params.idxtest);
-    legend_cn{end+1} = sprintf('SCNCD Type-Based'); 
-
-    answer_cn{end+1} = cumsum(mean(response_aggr_cn))./numel(params.idxtest);
-    legend_cn{end+1} = sprintf('Aggr. SCNCD'); 
-
-    answer={};legend={};
-    %Cascade Results.
-    answer{end+1} = cumsum(mean(response_fusion))./numel(params.idxtest);
-    legend{end+1} = sprintf('Fusion');
-
-    answer{end+1} = cumsum(mean(response_final))./numel(params.idxtest);
-    legend{end+1} = 'Aggr.';
+%     % Histogram mean results.
+%     answer_hist = {};legend_hist={};
+%         for i=1:numel(params.hist)
+%             answer_hist{end+1} = cumsum(squeeze(mean(response_hist(i,:,:))))./numel(params.idxtest);
+%             legend_hist{end+1} = mHist{i}.name;
+%         end
+%         
+%     answer_hist{end+1} = cumsum(mean(resp_type_hist))./numel(params.idxtest);
+%     legend_hist{end+1} = sprintf('Hist. Type-Based');   
+% 
+%     answer_hist{end+1} = cumsum(mean(response_aggr_hist))./numel(params.idxtest);
+%     legend_hist{end+1} = 'Aggr. Hist';
+% 
+%     % Color Names mean results.
+%     answer_cn = {};legend_cn={};
+%         for i=1:numel(params.cn)
+%             answer_cn{end+1} = cumsum(squeeze(mean(response_scncd(i,:,:))))./numel(params.idxtest);
+%             legend_cn{end+1} = mSCNCD{i}.name;
+%         end
+%     answer_cn{end+1} = cumsum(mean(resp_type_scncd))./numel(params.idxtest);
+%     legend_cn{end+1} = sprintf('SCNCD Type-Based'); 
+% 
+%     answer_cn{end+1} = cumsum(mean(response_aggr_cn))./numel(params.idxtest);
+%     legend_cn{end+1} = sprintf('Aggr. SCNCD'); 
+% 
+%     answer={};legend={};
+%     %Cascade Results.
+%     answer{end+1} = cumsum(mean(response_fusion))./numel(params.idxtest);
+%     legend{end+1} = sprintf('Fusion');
+% 
+%     answer{end+1} = cumsum(mean(response_final))./numel(params.idxtest);
+%     legend{end+1} = 'Aggr.';
     
 %     succeeded= 'Here'
 %     parameters=params

@@ -43,11 +43,23 @@ resp50 = zeros(params.nIter,N/2);
 resp25 = zeros(params.nIter,N/2);
 resp75 = zeros(params.nIter,N/2);
 
+%define final response tables for all
+resp_final_baseline=zeros(params.nIter,N/2);
+resp_final_75=zeros(params.nIter,N/2);
+resp_final_50=zeros(params.nIter,N/2);
+resp_final_25=zeros(params.nIter,N/2);
+resp_final_random50=zeros(params.nIter,N/2);
+
+
 params.num_pcn = 3;
 
 % store values F and S accordingly with the paper.
 params.F = zeros(params.nparts, size(params.colorsTable,2), N/2);
 params.S = zeros(params.nparts, size(params.colorsTable,2), N/2);
+
+
+
+
 
 for iter=1:params.nIter
     % Learn the metric distance (KISSME).
@@ -90,6 +102,7 @@ for iter=1:params.nIter
     resp = zeros(1,numel(params.idxtest));
     for i=1:numel(params.idxtest)
         resp(rank_kiss(i,:)==i) = resp(rank_kiss(i,:)==i) + 1; 
+        resp_final_baseline(iter,rank_kiss(i,:)==i)=resp_final_baseline(iter,rank_kiss(i,:)==i)+1;
     end
     resp_baseline(iter,:) = cumsum(resp)./numel(params.idxtest);     
     
@@ -106,6 +119,8 @@ for iter=1:params.nIter
     resp = zeros(1,numel(params.idxtest));
     for i=1:numel(params.idxtest)
         resp(rank(i,:)==i) = resp(rank(i,:)==i) + 1; 
+        resp_final_75(iter,rank(i,:)==i)=resp_final_75(iter,rank(i,:)==i)+1;
+        
     end
     resp75(iter,:) = cumsum(resp)./numel(params.idxtest); 
     
@@ -122,6 +137,8 @@ for iter=1:params.nIter
     resp = zeros(1,numel(params.idxtest));
     for i=1:numel(params.idxtest)
         resp(rank(i,:)==i) = resp(rank(i,:)==i) + 1; 
+        resp_final_50(iter,rank(i,:)==i)=resp_final_50(iter,rank(i,:)==i)+1;
+        
     end
     resp50(iter,:) = cumsum(resp)./numel(params.idxtest); 
     
@@ -138,6 +155,8 @@ for iter=1:params.nIter
     resp = zeros(1,numel(params.idxtest));
     for i=1:numel(params.idxtest)
         resp(rank(i,:)==i) = resp(rank(i,:)==i) + 1; 
+        resp_final_25(iter,rank(i,:)==i)=resp_final_25(iter,rank(i,:)==i)+1;
+        
     end
     resp25(iter,:) = cumsum(resp)./numel(params.idxtest); 
     
@@ -152,38 +171,42 @@ for iter=1:params.nIter
         [~,idx] = sort(dist,2,'ascend'); 
         rank(i,:) = candidates(idx);
     end
-    % Response using 25% of gallery images
+    % Response using 50% of gallery images random
     resp = zeros(1,numel(params.idxtest));
     for i=1:numel(params.idxtest)
         resp(rank(i,:)==i) = resp(rank(i,:)==i) + 1; 
+        resp_final_random50(iter,rank(i,:)==i)=resp_final_random50(iter,rank(i,:)==i)+1;
+        
+        
     end
     respRandom(iter,:) = cumsum(resp)./numel(params.idxtest); 
     
 end
-% Baseline Result.
-answer = {};legend={};
 
-% Baseline - KISSME (no-indexing)
-answer{end+1} = mean(resp_baseline,1);
-legend{end+1} = sprintf('No Indexing @1.0'); 
-
-answer{end+1} = mean(resp75,1);
-legend{end+1} = sprintf('Indexing @0.75'); 
-
-answer{end+1} = mean(resp50,1);
-legend{end+1} = sprintf('Indexing @0.50'); 
-
-answer{end+1} = mean(resp25,1);
-legend{end+1} = sprintf('Indexing @0.25');
-
-answer{end+1} = mean(respRandom,1);
-legend{end+1} = sprintf('No Indexing @0.50'); 
-
-% Ploting the graphic in Fig. 6
-fileName = 'Performance Degradation';
-ntitle = sprintf('CMC Curve - %s',upper(params.dataset));
-PlotCurve(answer, params.saveDir, fileName, legend, ntitle); 
-set(gcf,'color','w');
+% % Baseline Result.
+% answer = {};legend={};
+% 
+% % Baseline - KISSME (no-indexing)
+% answer{end+1} = mean(resp_baseline,1);
+% legend{end+1} = sprintf('No Indexing @1.0'); 
+% 
+% answer{end+1} = mean(resp75,1);
+% legend{end+1} = sprintf('Indexing @0.75'); 
+% 
+% answer{end+1} = mean(resp50,1);
+% legend{end+1} = sprintf('Indexing @0.50'); 
+% 
+% answer{end+1} = mean(resp25,1);
+% legend{end+1} = sprintf('Indexing @0.25');
+% 
+% answer{end+1} = mean(respRandom,1);
+% legend{end+1} = sprintf('No Indexing @0.50'); 
+% 
+% % Ploting the graphic in Fig. 6
+% fileName = 'Performance Degradation';
+% ntitle = sprintf('CMC Curve - %s',upper(params.dataset));
+% PlotCurve(answer, params.saveDir, fileName, legend, ntitle); 
+% set(gcf,'color','w');
 
 end
 

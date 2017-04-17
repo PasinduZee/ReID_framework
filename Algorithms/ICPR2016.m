@@ -55,6 +55,9 @@ params.Iter =10;
 hpca = zeros(params.Iter,numel(trials(1).labelsAtest));
 kernel_hpca = zeros(params.Iter,numel(trials(1).labelsAtest));
 
+resp_final_hpca = zeros(params.Iter,numel(trials(1).labelsAtest));
+resp_final_kernel_hpca = zeros(params.Iter,numel(trials(1).labelsAtest));
+
 for iter=1:params.Iter
     
     params.idxtrain = trials(iter).labelsAtrain;
@@ -72,8 +75,27 @@ for iter=1:params.Iter
     PCaparams.print =1; PCaparams.factor =100;
     
     % -------- Linear Model --------------
-    hpca(iter,:) = run_hpca(data,PCaparams);
+    num_test = size(data.featA,1);
+    
+    Model = HPCA(data.featA,data.featB,PCaparams);
+    
+    txA = bsxfun(@rdivide,bsxfun(@minus, data.test_featA, Model.dataA.mean), Model.dataA.std);
+    txB = bsxfun(@rdivide,bsxfun(@minus, data.test_featB,  Model.dataB.mean),Model.dataB.std);
+    
+    nXa = txA*Model.Wa; nXb = txB*Model.Wb;
+    
+    [~,idx] = sort(pdist2(nXa,nXb,'cosine'),2,'ascend');
    
+    nresp = zeros(1,num_test);
+    for i=1:num_test
+        nresp(idx(i,:)==i) = nresp(idx(i,:)==i) + 1;
+        resp_final_hpca(iter,idx(i,:)==i)=resp_final_hpca(iter,idx(i,:)==i)+1;
+    end
+    
+    hpca(iter,:) = cumsum(nresp)./num_test;
+
+    
+    
    disp('>Applying Kernel to Train and Test...');
    
    % Applying Kernel
@@ -93,17 +115,30 @@ for iter=1:params.Iter
     % Paramters 
     PCaparams.epsilon= 10^-5; PCaparams.maxstep= 1000; 
     PCaparams.print =1; PCaparams.factor =100; 
+     
+    num_test = size(kerneldata.norm_train_a_ker,1);
+    Model=  Kernel_HPCA(kerneldata.norm_train_a_ker,kerneldata.norm_train_b_ker,PCaparams);
+    nXa = kerneldata.norm_test_a_ker*Model.Wx; nXb = kerneldata.norm_test_b_ker*Model.Wy;
     
-    kernel_hpca(iter,:)= run_kernel2hpca(kerneldata,PCaparams);
+    [~,idx] = sort(pdist2(nXa,nXb,'cosine'),2,'ascend');
+   
+    nresp = zeros(1,num_test);
+    for i=1:num_test
+        nresp(idx(i,:)==i) = nresp(idx(i,:)==i) + 1;
+        resp_final_kernel_hpca(iter, idx(i,:)==i)= resp_final_kernel_hpca(iter, idx(i,:)==i)+1;
+    end
+    kernel_hpca(iter,:) = cumsum(nresp)./num_test;
+    
+    
 end
 
-% Plotting Supervised
-answer{end+1} = mean(hpca,1);legend{end+1} = 'HPCA';
-answer{end+1} = mean(kernel_hpca,1);legend{end+1} = 'Kernel HPCA';
-
-ntitle = sprintf('Cumulative Matching Characteristic (CMC) Curve - %s',dataset);
-PlotCurve(answer, params.saveDir, [fileName '_icpr2016'], legend, ntitle); 
-set(gcf,'color','w');
+% % Plotting Supervised
+% answer{end+1} = mean(hpca,1);legend{end+1} = 'HPCA';
+% answer{end+1} = mean(kernel_hpca,1);legend{end+1} = 'Kernel HPCA';
+% 
+% ntitle = sprintf('Cumulative Matching Characteristic (CMC) Curve - %s',dataset);
+% PlotCurve(answer, params.saveDir, [fileName '_icpr2016'], legend, ntitle); 
+% set(gcf,'color','w');
 
 end
 
@@ -230,7 +265,7 @@ for l=1:nfactor
     maxstep=params.maxstep;
     while ( ( (super_t0-super_t)'*(super_t0-super_t) > epsilon/2) & (nstep < maxstep));
         nstep=nstep+1;
-        disp(['Latent Variable #',int2str(l),'  Iteration #:',int2str(nstep)])
+     %   disp(['Latent Variable #',int2str(l),'  Iteration #:',int2str(nstep)])
         super_t0=super_t;
         %computing the loadings
         wa = Xa_res'*super_t; 

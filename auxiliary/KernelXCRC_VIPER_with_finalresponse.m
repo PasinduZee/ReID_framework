@@ -1,33 +1,46 @@
-function KernelXCRC(c2o_params,params)
+function KernelXCRC
 
 close all
-workDir=pwd;
-
-load(fullfile(workDir,'data',sprintf('%s_features.mat',c2o_params.dataset)));
 
 
+workDir = pwd;
+dataset ='viper';
+
+
+load(fullfile(workDir,'data',sprintf('%s_trials.mat',dataset)));
+load(fullfile(workDir,'data',sprintf('%s_features.mat',dataset)));
+
+params.N = 316;    
+% Parameters
 params.scale =8e-1;
 params.lambda = 1e-2; 
- 
-workDir = pwd;
-answer={};legend={};      
-resp = zeros(1,c2o_params.test_count);    
+
+params.saveDir = strcat('.\Graphics\',dataset,'\'); 
+
+answer={};legend={};
+
+                      
+                
+params.Iter =10;
+resp = zeros(1,params.N);    
 rng(10);
 
-final_resp=zeros(1,c2o_params.test_count);
+final_resp=zeros(params.Iter,numel(trials(1).labelsAtest));
 
-
-    tic
+for iter=1:params.Iter
+   
+    % (1) Loading features and partitions         
+    params.idxtrain = trials(iter).labelsAtrain;
+    params.idxtest = trials(iter).labelsAtest;
+   
     params.N = 632;
     % subtracting the minimum
     dt = bsxfun(@minus,features, min(features,[],1));
 
-    feat.dataA = dt(params.idxtrain,:); 
-    feat.dataB = dt(params.idxtrain + params.N,:); 
-    test_feat.dataA = dt(params.idxtest,:);  
-    test_feat.dataB = dt(params.idxtest + params.N,:);  
+    feat.dataA = dt(params.idxtrain,:); feat.dataB = dt(params.idxtrain + params.N,:); 
+    test_feat.dataA = dt(params.idxtest,:);  test_feat.dataB = dt(params.idxtest + params.N,:);  
 
-
+    
     % Extracting XQDA features (I modify lambda to 1e-4 due the WHOS)
     [W, ~] = XQDA(feat.dataB, feat.dataA, (1:size(feat.dataB,1))', (1:size(feat.dataA,1))'); 
     xQDA_feat.dataA = feat.dataA*W;  xQDA_feat.dataA = normr(xQDA_feat.dataA); 
@@ -35,15 +48,16 @@ final_resp=zeros(1,c2o_params.test_count);
     test_xQDA_feat.dataA = test_feat.dataA*W; test_xQDA_feat.dataA = normr(test_xQDA_feat.dataA);
     test_xQDA_feat.dataB = test_feat.dataB*W; test_xQDA_feat.dataB = normr(test_xQDA_feat.dataB);
 
+   
+
     % RBF-KERNEL (nonlinear mapping)
     train_a_ker = rbf(xQDA_feat.dataA ,xQDA_feat.dataA,params.scale); 
     test_a_ker =  rbf(test_xQDA_feat.dataA ,xQDA_feat.dataA,params.scale);
-    
     train_b_ker = rbf(xQDA_feat.dataB ,xQDA_feat.dataB,params.scale); 
     test_b_ker =  rbf(test_xQDA_feat.dataB ,xQDA_feat.dataB,params.scale);
-
+    
     % ----------------- Kernel X-CRC Method --------------------
-
+    
     % Kernel X-CRC (as described in the Algorithm 1) 
     Model = Kernel_XCRC(train_a_ker,train_b_ker, params);
 
@@ -61,13 +75,16 @@ final_resp=zeros(1,c2o_params.test_count);
         [~,idx_error(i,:)] = sort(alfa_error,'ascend');
     end
     resp = zeros(1,size(test_b_ker,1));
-
+   
     for i=1:numel(params.idxtest) % For each probe
          resp(idx_error(i,:)==i) = resp(idx_error(i,:)==i) + 1;
-         final_resp(idx_error(i,:)==i) = final_resp(idx_error(i,:)==i) + 1;
+         final_resp(iter,idx_error(i,:)==i) = final_resp(iter,idx_error(i,:)==i) + 1;
     end
-
+    
     toc
+    
+   
+end
 
 
 end
@@ -84,14 +101,13 @@ nX = size(X,1);
 nY = size(Y,1);
 Z = zeros(nX,nY);
 
-n1sq = sum(X.^2,2); 
+n1sq = sum(X.^2,2);
 n2sq = sum(Y.^2,2);
-   
-part1=n1sq*ones(1,nY);
-part2=ones(nX,1)*n2sq';
-part3=-2*X*Y';
-D = part1 + part2 +part3 ; %changed nY to nX by pasinduzee 
 
+part1=n1sq*ones(1,nY);
+part2=n2sq*ones(1,nY);
+part3=-2*X*Y';
+D=part1+part2+part3;
 Z = exp(-D/(2*sigma^2));
 
 end
@@ -273,4 +289,4 @@ function [W, M, inCov, exCov] = XQDA(galX, probX, galLabels, probLabels, options
     if verbose == true
         fprintf(' %.3g seconds.\n\n', toc(t0));
     end
-end
+end                                                                                                                                           
