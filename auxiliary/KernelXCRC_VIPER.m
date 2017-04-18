@@ -1,4 +1,4 @@
-function KernelXCRC(c2o_params,params)
+function result=KernelXCRC_VIPER(c2o_params,params)
 
 close all
 workDir=pwd;
@@ -8,24 +8,19 @@ load(fullfile(workDir,'data',sprintf('%s_features.mat',c2o_params.dataset)));
 
 params.scale =8e-1;
 params.lambda = 1e-2; 
- 
-workDir = pwd;
-answer={};legend={};      
-resp = zeros(1,c2o_params.test_count);    
 rng(10);
-
-final_resp=zeros(1,c2o_params.test_count);
-
 
     tic
     params.N = 632;
     % subtracting the minimum
     dt = bsxfun(@minus,features, min(features,[],1));
 
-    feat.dataA = dt(params.idxtrain,:); 
-    feat.dataB = dt(params.idxtrain + params.N,:); 
-    test_feat.dataA = dt(params.idxtest,:);  
-    test_feat.dataB = dt(params.idxtest + params.N,:);  
+    %let camera A is probe and B is gallery
+    
+    feat.dataA = dt(c2o_params.idxtrain,:); 
+    feat.dataB = dt(c2o_params.idxtrain + params.N,:); 
+    test_feat.dataA = dt(c2o_params.idxtest_probe,:);  
+    test_feat.dataB = dt(c2o_params.idxtest_gallery + params.N,:);  
 
 
     % Extracting XQDA features (I modify lambda to 1e-4 due the WHOS)
@@ -47,12 +42,12 @@ final_resp=zeros(1,c2o_params.test_count);
     % Kernel X-CRC (as described in the Algorithm 1) 
     Model = Kernel_XCRC(train_a_ker,train_b_ker, params);
 
-    parfor i=1:numel(params.idxtest) % For each probe
+    parfor i=1:numel(c2o_params.idxtest_probe) % For each probe
         fprintf('Processing image %d \n',i);
-        alfa_error = zeros(1,numel(params.idxtest));
+        alfa_error = zeros(1,numel(c2o_params.idxtest_gallery));
         dX = Model.AlfaX.BetaX*test_a_ker(i,:)';
         dY = Model.AlfaY.BetaX*test_a_ker(i,:)';
-        for n=1:numel(params.idxtest) % For each gallery
+        for n=1:numel(c2o_params.idxtest_gallery) % For each gallery
             alfax =  dX + Model.AlfaX.BetaY*test_b_ker(n,:)';
             alfay =  dY + Model.AlfaY.BetaY*test_b_ker(n,:)';
             % computing the cosine distance between coding vectors
@@ -60,15 +55,9 @@ final_resp=zeros(1,c2o_params.test_count);
         end
         [~,idx_error(i,:)] = sort(alfa_error,'ascend');
     end
-    resp = zeros(1,size(test_b_ker,1));
-
-    for i=1:numel(params.idxtest) % For each probe
-         resp(idx_error(i,:)==i) = resp(idx_error(i,:)==i) + 1;
-         final_resp(idx_error(i,:)==i) = final_resp(idx_error(i,:)==i) + 1;
-    end
-
+       
     toc
-
+    result=idx_error(1:numel(c2o_params.idxtest_probe),:);
 
 end
 
