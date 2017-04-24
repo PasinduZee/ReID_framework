@@ -1,10 +1,11 @@
-function result=KernelXCRC_VIPER(c2o_params,params)
+function [result,alfa_min]=KernelXCRC_VIPER(c2o_params,params)
 
 close all
 workDir=pwd;
-
+alfa_threshold=0.5;
 load(fullfile(workDir,'data',sprintf('%s_features.mat',c2o_params.dataset)));
 
+alfa_min=zeros(numel(c2o_params.idxtest_gallery));
 
 params.scale =8e-1;
 params.lambda = 1e-2; 
@@ -42,24 +43,35 @@ rng(10);
     % Kernel X-CRC (as described in the Algorithm 1) 
     Model = Kernel_XCRC(train_a_ker,train_b_ker, params);
 
-    parfor i=1:numel(c2o_params.idxtest_probe) % For each probe
-        fprintf('Processing image %d \n',i);
+    %add parfor //pasinduzee
+    for i=1:numel(c2o_params.idxtest_probe) % For each probe
+%        fprintf('Processing image %d \n',i);
+        tmp_min=10000;
         alfa_error = zeros(1,numel(c2o_params.idxtest_gallery));
         dX = Model.AlfaX.BetaX*test_a_ker(i,:)';
+        threshold_broken=0;
         dY = Model.AlfaY.BetaX*test_a_ker(i,:)';
         for n=1:numel(c2o_params.idxtest_gallery) % For each gallery
             alfax =  dX + Model.AlfaX.BetaY*test_b_ker(n,:)';
             alfay =  dY + Model.AlfaY.BetaY*test_b_ker(n,:)';
             % computing the cosine distance between coding vectors
             alfa_error(n) = pdist2(alfax',alfay','cosine');
-        end
+            if(alfa_threshold<alfa_error(n))
+                threshold_broken=threshold_broken+1;
+            end
+            if(tmp_min>alfa_error(n))
+                tmp_min=alfa_error(n);
+            end
+        end 
         [~,idx_error(i,:)] = sort(alfa_error,'ascend');
+        alfa_min(i)=tmp_min;
     end
-       
+    result=idx_error(1:numel(c2o_params.idxtest_probe),1:numel(c2o_params.idxtest_gallery));
     toc
-    result=idx_error(1:numel(c2o_params.idxtest_probe),:);
-
+    
 end
+
+%##############################################################
 
 
 % rbf-chi-square kernel

@@ -1,4 +1,4 @@
-function KernelXCRC
+function KernelXCRC_VIPER_backup
 
 close all
 
@@ -27,8 +27,9 @@ rng(10);
 
 final_resp=zeros(params.Iter,numel(trials(1).labelsAtest));
 
-for iter=1:params.Iter
+%for iter=1:params.Iter
    
+    iter=1;
     % (1) Loading features and partitions         
     params.idxtrain = trials(iter).labelsAtrain;
     params.idxtest = trials(iter).labelsAtest;
@@ -61,9 +62,10 @@ for iter=1:params.Iter
     % Kernel X-CRC (as described in the Algorithm 1) 
     Model = Kernel_XCRC(train_a_ker,train_b_ker, params);
 
-    parfor i=1:numel(params.idxtest) % For each probe
+     for i=1:numel(params.idxtest) % For each probe
         fprintf('Processing image %d \n',i);
-        alfa_error = zeros(1,numel(params.idxtest));
+        alfa_error = zeros(1,numel(params.idxtest));     
+
         dX = Model.AlfaX.BetaX*test_a_ker(i,:)';
         dY = Model.AlfaY.BetaX*test_a_ker(i,:)';
         for n=1:numel(params.idxtest) % For each gallery
@@ -84,7 +86,7 @@ for iter=1:params.Iter
     toc
     
    
-end
+%end
 
 
 end

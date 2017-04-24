@@ -3,6 +3,10 @@
     % ICIP 2015 Code
     % Loading the color names and the foreground masks
     load('auxiliary\trCoe.mat'); 
+    
+    %loading iteration info // pasinduzee
+    load(fullfile(workDir,'MatFiles',sprintf('%s.mat','c2o_params.mat')));
+
     % Parameters
     %% Define the parameters.
     % Dataset (VIPer or PRID450S)
@@ -38,13 +42,23 @@
     % Gaussian Mask
     params.Gauss_mask = getGauss(params.image);
 
-    % Extract Color Names Features.
-    scncd_nfeat_img = getSCNCDImg(params, imgA, imgB, params.Gauss_mask);
-    scncd_nfeat_fore = getSCNCDFore(params, imgA, imgB, maskA, maskB);
-
-    % Extract Histograms features.
-    hist_nfeat_img = getHistImg(params, imgA, imgB, params.Gauss_mask);
-    hist_nfeat_fore = getHistFore(params, imgA, imgB, maskA, maskB);
+    
+    
+    %pasinduzee load color name features and histogram features if mat
+    %files are available
+     load(sprintf('MatFiles\\%s.mat','scncd_nfeat_img_ICIP'));
+     load(sprintf('MatFiles\\%s.mat','scncd_nfeat_fore_ICIP'));
+     load(sprintf('MatFiles\\%s.mat','hist_nfeat_img_ICIP'));
+     load(sprintf('MatFiles\\%s.mat','hist_nfeat_fore_ICIP'));
+     
+    
+%     % Extract Color Names Features.
+%     scncd_nfeat_img = getSCNCDImg(params, imgA, imgB, params.Gauss_mask);
+%     scncd_nfeat_fore = getSCNCDFore(params, imgA, imgB, maskA, maskB);
+% 
+%     % Extract Histograms features.
+%     hist_nfeat_img = getHistImg(params, imgA, imgB, params.Gauss_mask);
+%     hist_nfeat_fore = getHistFore(params, imgA, imgB, maskA, maskB);
 
     % Response for all curves.
     resp_type_hist = zeros(params.nIter,N/2);
@@ -56,11 +70,12 @@
     response_aggr_hist = zeros(params.nIter,N/2);
     response_final = zeros(params.nIter,N/2);
 
-    for iter=1:params.nIter
+   % for iter=1:params.nIter
         %% Learn the metric distance (KISSME).
         % Histograms (Isolated)
-        params.idxtrain = trials(iter,1:N/2);
-        params.idxtest = trials(iter,N/2 + 1:N);
+        iter=7;
+        params.idxtrain = c2o_params.idxtrain;
+        params.idxtest = c2o_params.idxtest_gallery;
         notsame = randperm(N/2,N/2);
         mHist={}; mSCNCD={};
 
@@ -151,6 +166,7 @@
 
         for i=1:size(typeRhist,2)
             resp_type_hist(iter, typeRhist(i,:)==i) = resp_type_hist(iter,typeRhist(i,:)==i) + 1; 
+            
         end
 
         % # COLOR NAMES #
@@ -331,8 +347,8 @@
             response_aggr_cn(iter, aggr_cn(i,:)==i) = response_aggr_cn(iter, aggr_cn(i,:)==i) + 1; 
         end
 
-        size_of_train_set= size(params.idxtrain)
-        size_of_test_set=size(params.idxtest)
+        size_of_train_set= size(params.idxtrain);
+        size_of_test_set=size(params.idxtest);
             
         % Final Aggregation of color names, histograms and fusion
         for i=1:numel(params.idxtest)
@@ -340,14 +356,13 @@
             list={};
             list{end+1} = aggr_cn(i,:); 
             list{end+1} = aggr_hist(i,:); 
-            list{end+1} = fusion(i,:);
-
+            list{end+1} = fusion(i,:);           
             [~, pval, ~] = aggregateRanks(list,numel(params.idxtest),params.aggr_method,0);
             [~, aggr_final] = sort(pval);
             response_final(iter,aggr_final==i) = response_final(iter, aggr_final==i) + 1; 
         end 
         
-    end
+  %  end
 
     
     
