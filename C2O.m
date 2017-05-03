@@ -25,29 +25,27 @@ c2o_params.non_trains=trials(c2o_params.iter_id).labelsAtest; %316 for viper non
 c2o_params.two_folder_point=200;
 c2o_params.input_sample_size=100;
 
-%for k=1:4
+for k=1:4
     
-    k=2;
     c2o_params.duplicate_feed_size=(c2o_params.input_sample_size*k)/10;
     
-    %set starting points
-    c2o_params.idxtest_gallery=c2o_params.non_trains(1:c2o_params.two_folder_point);
-    c2o_params.input_array_unshuffled=c2o_params.non_trains(c2o_params.two_folder_point+1:c2o_params.two_folder_point+c2o_params.input_sample_size);
-    repeat_feed=c2o_params.input_array_unshuffled(c2o_params.duplicate_feed_size+1:2*c2o_params.duplicate_feed_size); 
-    c2o_params.input_array_unshuffled(1:c2o_params.duplicate_feed_size)=repeat_feed;
-    c2o_params.probe_cam=1;
-    ix = randperm(numel(c2o_params.input_array_unshuffled));
-    c2o_params.input_array = c2o_params.input_array_unshuffled(ix);
-
+   
     %final_outs
     respons_false_match=zeros(10,4);
     respons_re_id=zeros(10,2);
 
-    %test_results
-    TOTAL_INPUT_COUNT=numel(c2o_params.input_array);
-
+    
 
     for threshold=1:10        
+        
+        %set starting points
+        c2o_params.idxtest_gallery=c2o_params.non_trains(1:c2o_params.two_folder_point);
+        c2o_params.input_array_unshuffled=c2o_params.non_trains(c2o_params.two_folder_point+1:c2o_params.two_folder_point+c2o_params.input_sample_size);
+        repeat_feed=c2o_params.input_array_unshuffled(c2o_params.duplicate_feed_size+1:2*c2o_params.duplicate_feed_size); 
+        c2o_params.input_array_unshuffled(1:c2o_params.duplicate_feed_size)=repeat_feed;
+        c2o_params.probe_cam=1;
+        ix = randperm(numel(c2o_params.input_array_unshuffled));
+        c2o_params.input_array = c2o_params.input_array_unshuffled(ix);
         
         tic
         
@@ -56,7 +54,8 @@ c2o_params.input_sample_size=100;
         CORRECT_RE_IDENTIFICATION_COUNT=0;
         FALSE_RE_IDENTIFICATION_COUNT=0;
         MISSED_TRUE_NEW=0;
-        CORRECT_RE_APPEARANCE_COUNT=0;
+        CORRECT_RE_APPEARANCE_COUNT=0;        
+        TOTAL_INPUT_COUNT=numel(c2o_params.input_array);
 
         for i=1:numel(c2o_params.input_array)
 
@@ -127,6 +126,6 @@ c2o_params.input_sample_size=100;
     save(strcat('response_precentages_',num2str(k)),'response_precentages');
     save(strcat('respons_re_id_',num2str(k)),'respons_re_id');
 
-%end
+end
 
 end
