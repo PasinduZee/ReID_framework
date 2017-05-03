@@ -25,7 +25,7 @@ c2o_params.non_trains=trials(c2o_params.iter_id).labelsAtest; %316 for viper non
 c2o_params.two_folder_point=200;
 c2o_params.input_sample_size=100;
 
-for k=1:4
+for k=3:4
     
     c2o_params.duplicate_feed_size=(c2o_params.input_sample_size*k)/10;
     
