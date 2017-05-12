@@ -101,7 +101,8 @@ function C2O(dataset,totN)
                         MISSED_TRUE_NEW=MISSED_TRUE_NEW+1;
                     end
 
-                    if(index(1) ~= i)
+     waQ-               if(index(1) ~= i)
+     
                         if(c2o_params.idxtest_probe==c2o_params.idxtest_gallery(matched_id))
                             %re-identified as the correct person - TRUE_POSITIVE
                             %do nothing to gallery
